@@ -10,7 +10,7 @@ from bokeh.plotting import figure
 from bokeh.resources import INLINE
 from bokeh.util.string import encode_utf8
 from bokeh.models.widgets import CheckboxButtonGroup, RadioButtonGroup
-from bokeh.models import CustomJS, Legend, ColumnDataSource, HoverTool
+from bokeh.models import CustomJS, Legend, ColumnDataSource, HoverTool, Range1d
 
 # For loading Quandl data
 import requests
@@ -109,25 +109,21 @@ def index():
                   y_axis_label='Price' )
     
     # Want to make sure we only plot dates specified by user
-    deltaT = pd.Timedelta( days=30 )
-    df_mini = df.ix[ df['Datetime'] > pd.to_datetime('today') - deltaT ]
-
-    #controls = [checkbox, radiobox]
-    #for control in controls:
-    #  control.on_change('value', lambda attr, old, new: update())
-    # checkbox.on_change( 'active' , lambda attr, old, new: print(new) )
+    #deltaT = pd.Timedelta( days=30 )
+    #df_mini = df.ix[ df['Datetime'] > pd.to_datetime('today') - deltaT ]
     
-    #fig.line( x='Datetime' , y='Close' , source=source , line_width=2 , color=colors['Blue'] , line_dash='solid' , legend='Close Pr.' , line_alpha='Close alpha' )
-    #fig.line( x='Datetime' , y='Adj. Close' , source=source , line_width=2 , color=colors['Red'] , line_dash='dashed' , legend='Adj. Close Pr.' , line_alpha='Adj. Close alpha' )
-    #fig.line( x='Datetime' , y='High' , source=source , line_width=2 , color=colors['Green'] , line_dash='dashed' , legend='Day High' , line_alpha='High alpha' )
-    #fig.line( x='Datetime' , y='Low' , source=source , line_width=2 , color=colors['Black'] , line_dash='dashed' , legend='Day Low' , line_alpha='Low alpha' )
     line_close = fig.line( x='Datetime' , y='Close' , source=source , line_width=1 , color=colors['Blue'] , line_dash='solid' , legend='Close Pr.' , line_alpha=0.8 )
     line_adjclose = fig.line( x='Datetime' , y='Adj. Close' , source=source , line_width=1 , color=colors['Red'] , line_dash='solid' , legend='Adj. Close Pr.' , line_alpha=0.8 )
     line_high = fig.line( x='Datetime' , y='High' , source=source , line_width=1 , color=colors['Green'] , line_dash='solid' , legend='Day High' , line_alpha=0.8 )
     line_low = fig.line( x='Datetime' , y='Low' , source=source , line_width=1 , color=colors['Black'] , line_dash='solid' , legend='Day Low' , line_alpha=0.8 )
     fig.legend.location = 'top_left'
     fig.legend.orientation = 'horizontal'
-
+    #print fig.x_range.start
+    #print fig.x_range.end
+    #print fig.x_range.bounds
+    #fig.x_range[0] = fig.x_range[1] - 2628000000 # Just show 1 month to start
+    fig.x_range = Range1d( pd.to_datetime('today') - pd.Timedelta(days=30) , pd.to_datetime('today') )
+    
     # Create some widgets
     callback_checkbox = CustomJS( args=dict(line_close=line_close, line_adjclose=line_adjclose, line_high=line_high, line_low=line_low) , code="""
       line_close.visible = false;
@@ -147,13 +143,20 @@ def index():
       }
     """)
 
-
-    callback_radiobox = CustomJS( args=dict(source=source) , code="""
-      data = source.get('data')
-      f = cb_obj.get('value')
-      
+    callback_radiobox = CustomJS(args=dict(x_range=fig.x_range), code="""
+      f = cb_obj.active
+      end = x_range.get('end')
+      if (f==0) {
+        x_range.set('start', end - 2628000000)
+      } else if (f==1) {
+        x_range.set('start', end - 7884000000)
+      } else if (f==2) {
+        x_range.set('start', end - 15768000000)
+      } else {
+        x_range.set('start', end - 31536000000)
+      }
     """)
-    
+
     checkbox = CheckboxButtonGroup( labels=['Close','Adj. Close','High','Low'] , active=[0,1,2,3] , callback=callback_checkbox )
     radiobox = RadioButtonGroup( labels=['1 Month','3 Months','6 Months','1 Year'] , active=0 , callback=callback_radiobox )
 
