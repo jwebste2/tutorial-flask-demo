@@ -51,8 +51,21 @@
       </div>
     </div>
 
-    <div class="container text-center">
+    <div class="container">
+      <center>
+      <!--
+      <form name="color_button" method='GET'>
+        nDays:
+        <input type="text" name="nDays" value="{{ nDays }}">
+        <br>
+        <button type="submit">Refresh</button>
+      </form>
+      -->
+      {{ checkbox_div|indent(4)|safe }}
+      {{ radiobox_div|indent(4)|safe }}
       {{ plot_div|indent(4)|safe }}
+      </center>
+      <br>
     </div>
     
   </body>
