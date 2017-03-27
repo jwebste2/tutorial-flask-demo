@@ -11,7 +11,6 @@ from bokeh.resources import INLINE
 from bokeh.util.string import encode_utf8
 from bokeh.models.widgets import CheckboxButtonGroup, RadioButtonGroup
 from bokeh.models import CustomJS, Legend, ColumnDataSource, HoverTool
-import flex
 
 # For loading Quandl data
 import requests
